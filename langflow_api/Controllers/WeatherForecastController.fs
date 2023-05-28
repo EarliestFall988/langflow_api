@@ -36,3 +36,7 @@ type WeatherForecastController (logger : ILogger<WeatherForecastController>) =
                   TemperatureC = rng.Next(-20,55)
                   Summary = summaries.[rng.Next(summaries.Length)] }
         |]
+
+
+module testExamples =
+    let runTest = true

@@ -32,10 +32,11 @@ module Program =
         app.MapControllers()
 
         let port = System.Environment.GetEnvironmentVariable("PORT");
-
+         
         if (app.Environment.IsDevelopment()) then
             app.Run()
         else
-            app.Run($"http://0.0.0.0:{port}")
+            app.Run($"http://0.0.0.0:{port}") //now we can talk to the outside world via railway
 
         exitCode
+
