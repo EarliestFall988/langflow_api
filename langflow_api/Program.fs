@@ -31,6 +31,11 @@ module Program =
         app.UseAuthorization()
         app.MapControllers()
 
-        app.Run()
+        let port = System.Environment.GetEnvironmentVariable("PORT");
+
+        if (app.Environment.IsDevelopment()) then
+            app.Run()
+        else
+            app.Run($"http://0.0.0.0:{port}")
 
         exitCode
