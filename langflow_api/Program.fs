@@ -31,6 +31,7 @@ module Program =
         app.UseAuthorization()
         app.MapControllers()
 
+
         let port = System.Environment.GetEnvironmentVariable("PORT");
          
         if (app.Environment.IsDevelopment()) then
