@@ -26,7 +26,7 @@ type CoreController (logger : ILogger<CoreController>) =
         let res = seq {
             use sr = new StreamReader(body)
             while sr.EndOfStream <> true do
-                yield sr.ReadLine
+                yield sr.ReadLine()
         }
 
         Seq.fold(fun str x -> str + " " + (string x)) " " res
@@ -52,33 +52,11 @@ type CoreController (logger : ILogger<CoreController>) =
     [<HttpPost>]
     member x.Post() =
 
-        Debug.WriteLine "data recivied - parsing..."
-
         
         let mutable body_result = "n/a"
         
         if x.Request.Body <> null then 
            body_result <- readBody x.Request.Body
-            
-        
-
-        Debug.WriteLine "finished reading"
-        
-        //let str = body |> Array.fold(fun str n -> str + " " + (string n)) " "
-
-        
-
-        Debug.WriteLine "data parsed..."
-
-        
-
-        //let data = Seq.toList body
-
-        //Debug.WriteLine "converted to a list..."
-
-        //let result = String.Join(",", data)
-
-        //Debug.WriteLine ("Result: " + result)
 
         { Response = body_result }
           
