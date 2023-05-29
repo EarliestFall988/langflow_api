@@ -13,9 +13,21 @@ open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
+open Microsoft.AspNetCore.Http.Features
+open Microsoft.AspNetCore.Http
+
 
 module Program =
     let exitCode = 0
+
+    //let fixSynchronousIO (context: HttpContext) (next: RequestDelegate)  = 
+    //    if context.Request.Path.StartsWithSegments("/core") then
+    //        let syncIOFeature = context.Features.Get<IHttpBodyControlFeature>();
+
+    //        if syncIOFeature <> null then
+    //            syncIOFeature.AllowSynchronousIO <- true
+
+    //    next
 
     [<EntryPoint>]
     let main args =
@@ -24,6 +36,10 @@ module Program =
 
         builder.Services.AddControllers()
 
+        //fixing wierd synchronous IO problem
+        builder.WebHost.ConfigureKestrel(fun serverOptions -> 
+        (serverOptions.AllowSynchronousIO <- true))
+
         let app = builder.Build()
 
         app.UseHttpsRedirection()
@@ -31,6 +47,7 @@ module Program =
         app.UseAuthorization()
         app.MapControllers()
 
+        //app.Use(fun (context: HttpContext) (next: RequestDelegate) -> fixSynchronousIO context next )
 
         let port = System.Environment.GetEnvironmentVariable("PORT");
          
