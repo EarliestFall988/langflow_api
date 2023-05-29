@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Compile Include="WeatherForecast.fs" />
+    <Compile Include="ResponseTypes.fs" />
     <Compile Include="Controllers\CoreController.fs" />
     <Compile Include="Controllers/WeatherForecastController.fs" />
     <Compile Include="Program.fs" />
