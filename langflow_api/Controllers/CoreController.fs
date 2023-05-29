@@ -31,32 +31,34 @@ type CoreController (logger : ILogger<CoreController>) =
 
         Seq.fold(fun str x -> str + " " + (string x)) " " res
                 
+    
+    let v1Path (path: string) : string = @"/api/v1" + path
+
 
     [<HttpGet>]
     member x.Get() =
-          //let mutable dictionary = new Dictionary<string, string>()
-          //dictionary.Add("Response", "Hello World!")
-          //dictionary.Add("Version", "1.0.0")
-          //dictionary.Add("Environment", "Development")
-          //dictionary.Add("Date", DateTime.Now.ToString())
-
-          //let json = JsonSerializer.Serialize(dictionary)
-
-          //x.Response.Headers.Add("Content-Type", "application/json; charset=utf-8")
-
-          //json
-
           
            { Response = "Hi Mom!"}
 
     [<HttpPost>]
     member x.Post() =
-
-        
+            
         let mutable body_result = "n/a"
         
         if x.Request.Body <> null then 
            body_result <- readBody x.Request.Body
 
         { Response = body_result }
-          
+
+    [<HttpPost("/api/v1/instructions")>]
+    member x.HandleIncomingInstructions() =
+        
+        let body = readBody x.Request.Body
+
+        let (res, instructions) = Core.parse_instructions_request body
+
+        {
+            Status = (if res = true then 200 else 400)
+            Message = instructions
+            Values = []
+        }

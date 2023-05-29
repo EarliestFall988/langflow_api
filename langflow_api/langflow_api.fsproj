@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Core\Core.fs" />
     <Compile Include="WeatherForecast.fs" />
     <Compile Include="ResponseTypes.fs" />
     <Compile Include="Controllers\CoreController.fs" />
