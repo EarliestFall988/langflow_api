@@ -56,5 +56,8 @@ module Program =
         else
             app.Run($"http://0.0.0.0:{port}") //now we can talk to the outside world via railway
 
-        exitCode
+        if port = null then 
+            printfn "The PORT environment variable does not exist."
+            Console.WriteLine "Error: The PORT variable does not exist. Exiting Program."
 
+        exitCode
