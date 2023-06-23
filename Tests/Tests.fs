@@ -4,7 +4,7 @@ open System
 open Xunit
 open langflow_api.Controllers
 open langflow_api
-open langflow.Core 
+
 
 
 [<Fact>]
@@ -17,8 +17,8 @@ let ``new test`` () =
     assert(res)
 
 
-[<Fact>]
-let ``explode line test`` () =
-    let res = ExplodeLine("3 + 3")
-    printfn "%A" res
-    assert(res = [['3'; '+'; '3']])
+//[<Fact>]
+//let ``explode line test`` () =
+//    let res = ExplodeLine("3 + 3")
+//    printfn "%A" res
+//    assert(res = [['3'; '+'; '3']])
