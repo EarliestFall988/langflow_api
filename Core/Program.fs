@@ -69,6 +69,13 @@ let convertCharToToken (c: char) : bool * tokenResult =
 //         )
 //     )
 
+
+let handleSmashedContext token lastValue result = 
+    match token with
+    | head :: tail ->  
+        if isNumber head = true then
+            (handleSmashedContext tail "number" (result @ [head]))
+
 ///parse the line
 let ExplodeLine (line: string) : char list list =
     line.Split(" ")
@@ -109,3 +116,5 @@ printfn ("test2: %A") test2
 
 let test3 = ExplodeDocument("1 + 2\n3 + 4\n5 + 6")
 printfn ("test3: %A") test3
+
+
