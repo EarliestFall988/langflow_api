@@ -133,39 +133,52 @@ type ExplodeStatus =
     | Let
     | Equal
 
-let rec ReadBack (data: char list) (result: char list) (amtLeft: int) : string =
+let rec SequentialPull (data: char list) (result: char list) (amtLeft: int) : char list =
 
     //printfn "\t\t\trev: %A" data
 
     match (data, amtLeft) with
-    | ([], x) -> result |> List.toArray |> System.String
+    | ([], x) -> result
     | (h::t, x) -> 
         //printfn "%A" h
-        if x >= 0 then ReadBack t (List.append result [h]) (amtLeft - 1)
-        else result |> List.toArray |> System.String
+        if x >= 0 then SequentialPull t (List.append result [h]) (amtLeft - 1)
+        else result
 
+
+let ReadBack data result amtLeft =
+    let rev = List.rev data
+    //printfn "%A" rev
+
+    let res = SequentialPull rev result amtLeft |> List.rev
+
+    //printfn "read back result: %A" res
+
+    res |> List.toArray |> System.String
 
 let IsLet result : bool =
-    printfn "\t\tres: %A" result
+    //printfn "\t\tres: %A" result
     let str = ReadBack result [] 4
-    printfn "\t\tstr: %A" str
+    //printfn "\t\tstr: %A" str
     if str = "let" then true 
     else false
+
+let RemoveLast data = 
+     List.removeAt ((List.length data) - 1) data
 
 ///<summary>clean line and convert into tokens</summary>
 let rec ExplodeLine (line: char list) (result: char list) (status : ExplodeStatus) (lineNumber: int) (characterNumber: int) : string =
     match line with
     | head :: tail ->
-        if head = ' ' && status <> ExplodeStatus.ReadString then
+        if head = ' ' && status <> ExplodeStatus.ReadString && Char.IsAscii head then
             if (IsLet result) then 
                 ExplodeLine tail (List.append result [head]) ExplodeStatus.Let lineNumber (characterNumber + 1) //keep the whitespace - we're now looking at some sort of value store
             else
                 ExplodeLine tail result status lineNumber (characterNumber + 1)
-        elif Char.IsDigit head then
+        elif Char.IsDigit head && status <> ExplodeStatus.ReadString && Char.IsAscii head then
             let appendedResult = List.append result [head]
             //printfn "\tappended Result: %A" appendedResult
             ExplodeLine tail appendedResult status lineNumber (characterNumber + 1)
-        elif status <> ExplodeStatus.ReadString then
+        elif status <> ExplodeStatus.ReadString && Char.IsAscii head then
             if head = '+' then
                 ExplodeLine tail (List.append result [head]) ExplodeStatus.Add lineNumber (characterNumber + 1)
             elif head = '-' then
@@ -173,10 +186,10 @@ let rec ExplodeLine (line: char list) (result: char list) (status : ExplodeStatu
             elif head = '*' then
                 ExplodeLine tail (List.append result [head]) ExplodeStatus.Mult lineNumber (characterNumber + 1)
             elif head = '/' then
-                if status = Div then //not reading a string but the second time we see a dividing line...
-                    List.removeAt ((List.length result) - 1) result |> List.toArray |> System.String //it's a comment... exit and remove the previous divide character
+                if status = Div then //the second time we see a dividing line...
+                   RemoveLast result |> List.toArray |> System.String //it's a comment... exit and remove the previous divide character
                 else
-                    ExplodeLine tail (List.append result [head]) ExplodeStatus.Div lineNumber (characterNumber + 1) // it's could be a divide operator 
+                    ExplodeLine tail (List.append result [head]) ExplodeStatus.Div lineNumber (characterNumber + 1) // it's a divide operator 
 
             elif head = ';' then
                 ExplodeLine tail result ExplodeStatus.Semicolon lineNumber (characterNumber + 1)
@@ -184,13 +197,26 @@ let rec ExplodeLine (line: char list) (result: char list) (status : ExplodeStatu
             elif head = '=' then
                 ExplodeLine tail (List.append result [head]) ExplodeStatus.Equal lineNumber (characterNumber + 1)
 
+            elif head = '\"' then
+                ExplodeLine tail (List.append result [head]) ExplodeStatus.ReadString lineNumber (characterNumber + 1)
+
             elif Char.IsLetter head then
                 ExplodeLine tail (List.append result [head]) ExplodeStatus.Letter lineNumber (characterNumber + 1)
             else 
                 //ExplodeLine tail result status
                 raise (ValueNotUnderstoodException($"Cannot parse the unknown value in the document {head} at {lineNumber}:{characterNumber}")) // oh poop
         elif status = ExplodeStatus.ReadString && Char.IsAscii head then
-                ExplodeLine tail (List.append result [head]) ExplodeStatus.Letter lineNumber (characterNumber + 1)
+            
+            //let res = ReadBack result [] 0 
+            //printfn "res: %A" res
+
+            if head = '\"' then
+                if (ReadBack result [] 0 = "\\") then
+                    ExplodeLine tail (List.append result [head]) ExplodeStatus.ReadString lineNumber (characterNumber + 1)
+                else
+                    ExplodeLine tail (List.append result [head]) ExplodeStatus.Start lineNumber (characterNumber + 1)
+            else
+                ExplodeLine tail (List.append result [head]) ExplodeStatus.ReadString lineNumber (characterNumber + 1)
         else
             raise (ValueNotUnderstoodException($"Cannot parse the unknown value in the document {head} at {lineNumber}:{characterNumber}")) // oh poop
     | _ -> 
@@ -210,7 +236,7 @@ let rec ExplodeDocument (data: string list) (result : string list) (lineNumber: 
                 ExplodeDocument tail result (lineNumber + 1) // remove lines that start with comments
             else
                 //printfn "reading line: %A" x
-                let explodedLine = ExplodeLine (Seq.toList x) [] ExplodeStatus.Start lineNumber 0
+                let explodedLine = ExplodeLine (Seq.toList x) [] ExplodeStatus.Start lineNumber 1
                 ExplodeDocument tail (List.append result [explodedLine]) (lineNumber + 1)
     | _ -> result
 
@@ -238,7 +264,6 @@ printfn "\tStarted:\n"
 
 let doc = ReadFile(fileLocation + @"\ts.ev") 
 
-ExplodeDocument doc [] 0 |> printfn "\tResult:\n\n%A"
+ExplodeDocument doc [] 1 |> printfn "\tResult:\n\n%A"
 
 printfn "\n\tDone."
-
